@@ -13,6 +13,8 @@ class App extends Component {
       { label: 'Make Awesome App', important: false, done: false, id: 2 },
       { label: 'Have a lunch', important: false, done: false, id: 3 },
     ],
+    term: '',
+    filter: 'all',
   };
 
   handleDeleteItem = id => {
@@ -51,9 +53,37 @@ class App extends Component {
     this.toggleProperty(id, 'done');
   };
 
-  render() {
-    const { todoData } = this.state;
+  handleSearchChange = term => {
+    this.setState({ term });
+  };
 
+  search(items, term) {
+    if (term.length === 0) {
+      return items;
+    }
+
+    return items.filter(i =>
+      i.label.toLowerCase().includes(term.toLowerCase())
+    );
+  }
+
+  filter(items, filter) {
+    switch (filter) {
+      case 'all':
+        return items;
+      case 'active':
+        return items.filter(item => !item.done);
+      case 'done':
+        return items.filter(item => item.done);
+      default:
+        return items;
+    }
+  }
+
+  render() {
+    const { todoData, term, filter } = this.state;
+
+    const visibleItems = this.filter(this.search(todoData, term), filter);
     const doneCount = todoData.filter(el => el.done).length;
     const todoCount = todoData.length - doneCount;
 
@@ -61,12 +91,12 @@ class App extends Component {
       <div className="todo-app">
         <AppHeader toDo={todoCount} done={doneCount} />
         <div className="top-panel d-flex">
-          <SearchPanel />
+          <SearchPanel onSearchChange={this.handleSearchChange} />
           <ItemStatusFilter />
         </div>
 
         <TodoList
-          todos={todoData}
+          todos={visibleItems}
           onDeleted={this.handleDeleteItem}
           onToggleImportant={this.handleToggleImportant}
           onToggleDone={this.handleToggleDone}
